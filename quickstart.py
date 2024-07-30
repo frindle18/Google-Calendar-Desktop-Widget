@@ -11,7 +11,7 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 
-def main():
+def get_events():
   """Shows basic usage of the Google Calendar API.
   Prints the start and name of the next 10 events on the user's calendar.
   """
@@ -56,10 +56,14 @@ def main():
     )
     events = events_result.get("items", [])
 
-    if not events:
-      print("No upcoming events found.")
-      return
+    return events
 
+  except HttpError as error:
+    print(f"An error occurred: {error}")
+
+def save_events(events, file_path):
+  # Save events to a text file for Rainmeter
+  with open(file_path, 'w') as f:
     # Prints the start and name of the next 10 events
     for event in events:
         start = event["start"].get("dateTime", event["start"].get("date"))
@@ -71,12 +75,16 @@ def main():
         formatted_start_time = start_time.strftime('%d/%m/%y %H:%M')
         formatted_end_time = end_time.strftime('%H:%M')
 
-        summary = event.get('summary')
+        summary = event.get('summary', 'No Title')
 
-        print(f'{formatted_start_time} - {formatted_end_time} ----- {summary}')
+        f.write(f'{formatted_start_time} - {formatted_end_time} | {summary}\n')
 
-  except HttpError as error:
-    print(f"An error occurred: {error}")
+def main():
+    events = get_events()
+    if events:
+        save_events(events, 'C:/Users/sudar/OneDrive/Documents/Rainmeter/Skins/Google_Calendar_Dekstop_Widget/events.txt')
+    else:
+        print("No upcoming events found.")
 
 if __name__ == "__main__":
   main()
